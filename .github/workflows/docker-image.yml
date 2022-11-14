@@ -24,5 +24,9 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name : pushImage
+      run : echo "Chanaka*1102" | docker login -u "chanakasanjeewa" --password-stdin
+            docker image build -t chanakasanjeewa/mydockers:v1
+            docker push chanakasanjeewa/mydockers:v1
       
   
