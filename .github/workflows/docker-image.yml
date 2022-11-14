@@ -24,9 +24,13 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name : pushImage
-      run : echo "Chanaka*1102" | docker login -u "chanakasanjeewa" --password-stdin
-            docker image build -t chanakasanjeewa/mydockers:v1
-            docker push chanakasanjeewa/mydockers:v1
+    - name: Build docker image
+      run: docker builder build -t chanakasanjeewa/mydockers:latest .
+    - name: Login to docker hub
+      run: docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}   
+    - name: Push docker image to docker hub
+      run: docker push chanakasanjeewa/mydockers:latest 
+
+
       
   
