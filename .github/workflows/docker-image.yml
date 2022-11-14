@@ -30,7 +30,9 @@ jobs:
     - name: Build docker image whale
       run : docker build -t docker-whale -f ./GitTestProject/Dockerfile .
     - name: Push docker image to docker hub
-      run: docker push --help
+      run: docker images
+           docker push -all-tags chanakasanjeewa/mydockers:v1 .
+           
 
 
       
