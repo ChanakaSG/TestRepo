@@ -29,8 +29,6 @@ jobs:
       run: docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
     - name: Build docker image whale
       run : docker build -t docker-whale -f ./GitTestProject/Dockerfile .
-    - name: Build docker image
-      run: docker builder build -t chanakasanjeewa/mydockers:v1 .
     - name: Push docker image to docker hub
       run: docker push chanakasanjeewa/mydockers:v1 .
 
