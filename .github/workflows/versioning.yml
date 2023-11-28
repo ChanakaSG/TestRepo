@@ -1,0 +1,92 @@
+name: Build and deploy ASP.Net Core app to an Azure Web App
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Display Last Commit Information
+        run: |
+          last_commit_message=$(git log -1 --pretty=%B)
+          echo "$last_commit_message last commit"
+          echo "Last Commit SHA: ${GITHUB_SHA}"
+          echo "Last Commit Message: $(git log -1 --pretty=%B)"
+          echo "Last Commit Author: $(git log -1 --pretty=%an)"
+          echo "Last Commit Author Email: $(git log -1 --pretty=%ae)"
+
+      - name: Get Current Version
+        id: get-version
+        run: |
+          current_version=$(grep -oP '<Version>\K[^<]+' SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj)
+          echo "Current Version: $current_version"
+          echo "CURRENT_VERSION=$current_version" >> $GITHUB_ENV
+
+      - name: Determine Version Bump
+        id: determine-version
+        run: |
+          last_commit_message=$(git log -1 --pretty=%B)
+          if [[ $last_commit_message == *"major:"* ]]; then
+              version_type='major'
+          elif [[ $last_commit_message == *"minor:"* ]]; then
+              version_type='feature'
+          elif [[ $last_commit_message == *"patch:"* ]]; then
+              version_type='bug'
+          fi
+          echo "version type $version_type"
+          echo "VERSION_TYPE=$version_type" >> $GITHUB_ENV
+
+      - name: Bump release version
+        id: bump_version
+        uses: christian-draeger/increment-semantic-version@1.1.0
+        with:
+          current-version: ${{ env.CURRENT_VERSION }} # also accepted: 'v2.11.7-alpha.3' | '2.11.7-alpha3'
+          version-fragment: ${{ env.VERSION_TYPE }} # major | feature | bug | alpha | beta | pre | rc
+          
+      - name: Do something with your bumped release version
+        run: |
+          new_version=${{ steps.bump_version.outputs.next-version }}
+          echo "new version is $new_version"
+          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
+
+      - name: Update Version in .csproj
+        run: |
+          sed -i "s|<Version>${{ env.CURRENT_VERSION }}</Version>|<Version>${{ env.NEW_VERSION }}</Version>|" SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+      
+      - name: Commit report
+        run: |
+          git config --global user.name $(git log -1 --pretty=%an)
+          git config --global user.email $(git log -1 --pretty=%ae)
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git add SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+          git commit -am "Automated report"
+          git push
+          
+      - name: Update Version in .csproj
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+            git config user.name "GitHub Actions"
+            git config user.email "$(git log -1 --pretty=%ae)"
+            git remote add origin_with_token "https://$GITHUB_ACTOR:${{ secrets.PAT }}@github.com/nzsafetyblackwoods/SHOPNX.Acknowledgement.git"
+            
+            # Check for changes before committing
+            if git diff-index --quiet HEAD --; then
+              echo "No changes to commit."
+            else
+              git add SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+              git commit -m "Automated report [skip ci]"
+              git push
+            fi
