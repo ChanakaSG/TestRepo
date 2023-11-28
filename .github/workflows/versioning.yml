@@ -70,13 +70,13 @@ jobs:
         run: |
           git config --global user.name $(git log -1 --pretty=%an)
           git config --global user.email $(git log -1 --pretty=%ae)
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/GitTestProject.git
           git add GitTestProject/GitTestProject.csproj
           git commit -am "Automated report"
           git push
           
       - name: Update Version in .csproj
-        if: steps.git-check.outputs.modified == 'true'
+        if: steps.git-check.outputs.modified == 'false'
         run: |
             git config user.name "GitHub Actions"
             git config user.email "$(git log -1 --pretty=%ae)"
