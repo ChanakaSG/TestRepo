@@ -72,6 +72,7 @@ jobs:
           git config --global user.name $(git log -1 --pretty=%an)
           git config --global user.email $(git log -1 --pretty=%ae)
           git remote set-url origin https://ChanakaSG:${{secrets.PAT_TOKEN}}@github.com/ChanakaSG/TestRepo.git
+          git config --get remote.origin.url 
           git add GitTestProject/GitTestProject.csproj
           git commit -m "Automated report"
           git push
