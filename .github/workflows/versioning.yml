@@ -31,7 +31,7 @@ jobs:
       - name: Get Current Version
         id: get-version
         run: |
-          current_version=$(grep -oP '<Version>\K[^<]+' SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj)
+          current_version=$(grep -oP '<Version>\K[^<]+' GitTestProject/GitTestProject.csproj)
           echo "Current Version: $current_version"
           echo "CURRENT_VERSION=$current_version" >> $GITHUB_ENV
 
@@ -64,14 +64,14 @@ jobs:
 
       - name: Update Version in .csproj
         run: |
-          sed -i "s|<Version>${{ env.CURRENT_VERSION }}</Version>|<Version>${{ env.NEW_VERSION }}</Version>|" SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+          sed -i "s|<Version>${{ env.CURRENT_VERSION }}</Version>|<Version>${{ env.NEW_VERSION }}</Version>|" GitTestProject/GitTestProject.csproj
       
       - name: Commit report
         run: |
           git config --global user.name $(git log -1 --pretty=%an)
           git config --global user.email $(git log -1 --pretty=%ae)
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git add SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+          git add GitTestProject/GitTestProject.csproj
           git commit -am "Automated report"
           git push
           
@@ -80,13 +80,13 @@ jobs:
         run: |
             git config user.name "GitHub Actions"
             git config user.email "$(git log -1 --pretty=%ae)"
-            git remote add origin_with_token "https://$GITHUB_ACTOR:${{ secrets.PAT }}@github.com/nzsafetyblackwoods/SHOPNX.Acknowledgement.git"
+            git remote add origin_with_token "https://$GITHUB_ACTOR:${{ secrets.PAT }}@github.com/GitTestProject.git"
             
             # Check for changes before committing
             if git diff-index --quiet HEAD --; then
               echo "No changes to commit."
             else
-              git add SHOPNX.Acknowledgement/SHOPNX.Acknowledgement.csproj
+              git add GitTestProject/GitTestProject.csproj
               git commit -m "Automated report [skip ci]"
               git push
             fi
